@@ -7,6 +7,7 @@ using System.Windows.Forms;
 namespace MusicBeePlugin
 {
     using System.Reflection;
+    using Net;
     using Windows.Forms;
 
     public partial class Plugin
@@ -122,7 +123,7 @@ namespace MusicBeePlugin
         // そしてそこで選択されたものが一つ一つRetrieveLyrics/RetrieveArtworkメソッドに渡されます。
         public string[] GetProviders()
         {
-            return null;
+            return LyricsFetcher.RegisteredProviders;
         }
 
         // provider に対して artist や title を元にリクエストして得られた歌詞を返してください。
@@ -130,7 +131,10 @@ namespace MusicBeePlugin
         // 歌詞が見つからなかった場合は null を返してください。
         public string RetrieveLyrics(string sourceFileUrl, string artist, string trackTitle, string album, bool synchronisedPreferred, string provider)
         {
-            return null;
+            if (about.Type != PluginType.LyricsRetrieval) return null;
+
+            var fetcher = LyricsFetcher.GetFetcher(provider);
+            return fetcher?.Fetch(trackTitle, artist, album);
         }
 
         // provider に対してリクエストして得られたアートワークのバイナリデータをBASE64エンコードして返してください。
