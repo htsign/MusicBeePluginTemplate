@@ -1,11 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using static MusicBeePlugin.Plugin;
 
 namespace MusicBeePlugin
 {
-    public class SongFile
+    public class SongFile : IDisposable
     {
         private MusicBeeApiInterface mbApiInterface;
         private Dictionary<string, PropertyInfo> propertyNamesCache = new Dictionary<string, PropertyInfo>();
@@ -19,6 +20,8 @@ namespace MusicBeePlugin
         #endregion
 
         #region public properties
+		public bool AutoCommit { get; set; } = true;
+
         public string FullPath { get; }
         
         private string fileName = null;
@@ -207,6 +210,19 @@ namespace MusicBeePlugin
         #region public methods
         public bool Commit() => mbApiInterface.Library_CommitTagsToFile(FullPath);
         #endregion
+
+		#region disposable pattern
+		public void Dispose()
+		{
+			if (AutoCommit) Commit();
+			GC.SuppressFinalize(this);
+		}
+
+		~SongFile()
+		{
+			Dispose();
+		}
+		#endregion
     }
 }
 
