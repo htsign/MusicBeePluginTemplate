@@ -17,7 +17,7 @@ namespace MusicBeePlugin.Net
 
             if (req is HttpWebRequest)
             {
-                (req as HttpWebRequest).CookieContainer = CookieContainer;
+                ((HttpWebRequest)req).CookieContainer = CookieContainer;
             }
             return req;
         }
@@ -28,7 +28,7 @@ namespace MusicBeePlugin.Net
 
             if (res is HttpWebResponse)
             {
-                Referer = (res as HttpWebResponse).ResponseUri.AbsoluteUri;
+                Referer = ((HttpWebResponse)res).ResponseUri.AbsoluteUri;
             }
             return res;
         }
