@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Windows.Forms;
 
 namespace MusicBeePlugin
 {
-    using System.Reflection;
     using Net;
     using Windows.Forms;
 
