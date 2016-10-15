@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using System.Web;
 using System.Xml;
 using System.Xml.Linq;
@@ -25,50 +27,72 @@ namespace MusicBeePlugin.Net
             return DownloadPageAsXmlAsync(Host + "search?q=" + HttpUtility.UrlEncode(queries.ToString()))
             .ContinueWith(t =>
             {
+                // 'Songs:' ってテキストを持った h3.seah の次の要素の中にある a[href] の値が歌詞のあるページURL
                 XElement a = t.Result.XPathSelectElement(@"//x:h3[@class='seah' and .='Songs:']/following-sibling::x:div//x:a", nsMgr);
-                return a?.Attribute("href").Value;
+                string href = a?.Attribute("href")?.Value;
+                if (href == null) throw new Exception("なんか知らんけど歌詞URL取れんかった。\r\n" +
+                                                      $"Title: \"{title}\", Artist: \"{artist}\"");
+                return href;
             })
-            .ContinueWith(t => DownloadPageAsXmlAsync(Host + t.Result)
-                .ContinueWith(t2 =>
-                {
-                    int n = int.Parse(t.Result.Split('#')[1]);
-                    string lyricsRoot = @"//x:div[@class='lyrics']";
-                    XDocument doc = t2.Result;
 
-                    // ref: https://os0x.g.hatena.ne.jp/os0x/20080307/1204903268
-                    // <h3><a name="{n}">n. [title]</a></h3> から <h3><a name="{n+1}">n+1. [title]</a></h3> まで取得
-                    var targetNodes = (IEnumerable<object>)doc.XPathEvaluate($@"{lyricsRoot}/x:h3[x:a[@name='{n}']]/following-sibling::node()[following::x:h3[x:a[@name='{n + 1}']]]", nsMgr);
-                    if (targetNodes.Count() == 0)
-                    {
-                        targetNodes = ((IEnumerable<object>)doc.XPathEvaluate($@"{lyricsRoot}/x:h3[x:a[@name='{n}']]/following-sibling::node()", nsMgr))
-                            .TakeWhile(node =>
-                            {
-                                if (((XNode)node).NodeType != XmlNodeType.Element) return true;
-                                var elem = (XElement)node;
-                                if (elem.Name.LocalName == "div")
-                                {
-                                    XName attr = elem.Attribute("class")?.Name;
-                                    return attr != "thanks" && attr != "note";
-                                }
-                                return elem.Name.LocalName != "a";
-                            });
-                    }
-                    var items = targetNodes.Select(node =>
-                    {
-                        if (((XNode)node).NodeType == XmlNodeType.Element)
+            .ContinueWith(t =>
+            {
+                string path = t.Result;
+                XDocument doc = DownloadPageAsXmlAsync(Host + path).Result;
+                // URLの # 以降にトラック番号があるんだけど、万が一の # が無かった場合を考慮してないのでコケたらすまんな
+                int index = int.Parse(path.Split('#')[1]);
+                return new { Document = doc, Index = index };
+            }, TaskContinuationOptions.NotOnFaulted)
+
+            .ContinueWith(t =>
+            {
+                string lyricsRoot = @"//x:div[@class='lyrics']";
+                XDocument doc = t.Result.Document;
+                int n = t.Result.Index;
+
+                // ref: https://os0x.g.hatena.ne.jp/os0x/20080307/1204903268
+                // <h3><a name="{n}">n. [title]</a></h3>     から
+                // <h3><a name="{n+1}">n+1. [title]</a></h3> まで取得
+                var targetNodes = (IEnumerable<object>)doc.XPathEvaluate($@"{lyricsRoot}/x:h3[x:a[@name='{n}']]/following-sibling::node()[following::x:h3[x:a[@name='{n + 1}']]]", nsMgr);
+                if (targetNodes.Count() == 0)
+                {
+                    // 上の条件で見つからなかった場合は
+                    // <h3><a name="{n}">n. [title]</a></h3>                             から
+                    // <div class="thanks"></div> or <div class="note"></div> or <a></a> まで取得
+                    targetNodes = ((IEnumerable<object>)doc.XPathEvaluate($@"{lyricsRoot}/x:h3[x:a[@name='{n}']]/following-sibling::node()", nsMgr))
+                        .TakeWhile(node =>
                         {
+                            if (((XNode)node).NodeType != XmlNodeType.Element) return true;
                             var elem = (XElement)node;
-                            if (elem.Name.LocalName == "br") return "\r\n";
-                            else if (elem.Name.LocalName == "i") return elem.Value.Trim();
-                            else return null;
-                        }
-                        else if (((XNode)node).NodeType == XmlNodeType.Text) return ((XText)node).Value.Trim();
+                            if (elem.Name.LocalName == "div")
+                            {
+                                XName attr = elem.Attribute("class")?.Name;
+                                return attr != "thanks" && attr != "note";
+                            }
+                            return elem.Name.LocalName != "a";
+                        });
+                }
+                // それでも見つからなかったら知らん
+
+                var items = targetNodes.Select(node =>
+                {
+                    if (((XNode)node).NodeType == XmlNodeType.Element)
+                    {
+                        // <br>なら改行にして、<i>ならその中のテキストを取り出す
+                        var elem = (XElement)node;
+                        if (elem.Name.LocalName == "br") return "\r\n";
+                        else if (elem.Name.LocalName == "i") return elem.Value.Trim();
                         else return null;
-                    });
-                    return items.Where(s => !string.IsNullOrEmpty(s)).ToArray();
-                })
-                .ContinueWith(t2 => string.Join("", t2.Result)).Result
-            ).Result.Trim();
+                    }
+                    // TextNode ならテキストを取り出す
+                    else if (((XNode)node).NodeType == XmlNodeType.Text) return ((XText)node).Value.Trim();
+                    else return null;
+                });
+                // シーケンスから空のテキストを除外
+                return items.Where(s => !string.IsNullOrEmpty(s)).ToArray();
+            }, TaskContinuationOptions.NotOnFaulted)
+
+            .ContinueWith(t => string.Join("", t.Result)).Result.Trim();
         }
     }
 }
