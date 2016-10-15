@@ -35,6 +35,8 @@ namespace MusicBeePlugin.Net
 
             switch (providerName)
             {
+                case "DarkLyrics.com":
+                    return new DarkLyricsLyricsFetcher();
                 default:
                     return null;
             }

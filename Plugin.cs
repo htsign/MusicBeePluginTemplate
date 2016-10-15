@@ -31,7 +31,7 @@ namespace MusicBeePlugin
             about.Description = attributes.OfType<AssemblyDescriptionAttribute>().SingleOrDefault()?.Description;
             about.Author      = attributes.OfType<AssemblyCompanyAttribute>()    .SingleOrDefault()?.Company;
             about.TargetApplication = "";   // current only applies to artwork, lyrics or instant messenger name that appears in the provider drop down selector or target Instant Messenger
-            about.Type         = PluginType.General;
+            about.Type         = PluginType.LyricsRetrieval;
             about.VersionMajor = (short)version.Major;
             about.VersionMinor = (short)version.Minor;
             about.Revision     = (short)version.Revision;
@@ -123,6 +123,7 @@ namespace MusicBeePlugin
         // そしてそこで選択されたものが一つ一つRetrieveLyrics/RetrieveArtworkメソッドに渡されます。
         public string[] GetProviders()
         {
+            LyricsFetcher.RegisterProvider(new DarkLyricsLyricsFetcher());
             return LyricsFetcher.RegisteredProviders;
         }
 
