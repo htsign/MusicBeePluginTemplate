@@ -134,7 +134,7 @@ namespace MusicBeePlugin
             if (about.Type != PluginType.LyricsRetrieval) return null;
 
             var fetcher = LyricsFetcher.GetFetcher(provider);
-            return fetcher?.Fetch(trackTitle, artist, album);
+            return fetcher?.Fetch(trackTitle, artist);
         }
 
         // provider に対してリクエストして得られたアートワークのバイナリデータをBASE64エンコードして返してください。

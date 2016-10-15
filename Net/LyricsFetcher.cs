@@ -1,5 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using System.Xml;
+using System.Xml.Linq;
+using Sgml;
 
 namespace MusicBeePlugin.Net
 {
@@ -37,6 +41,12 @@ namespace MusicBeePlugin.Net
         }
 
         public abstract string Fetch(string title, string artist, string album = null);
+        #endregion
+
+        #region private methods
+        protected Task<XDocument> DownloadPageAsXmlAsync(string url) =>
+            Task.Factory.StartNew(() => new SgmlReader { Href = url, IgnoreDtd = true })
+            .ContinueWith(t => XDocument.Load(t.Result));
         #endregion
     }
 }
