@@ -51,14 +51,14 @@ namespace MusicBeePlugin.Net
                 int n = t.Result.Index;
 
                 // ref: https://os0x.g.hatena.ne.jp/os0x/20080307/1204903268
-                // <h3><a name="{n}">n. [title]</a></h3>     から
-                // <h3><a name="{n+1}">n+1. [title]</a></h3> まで取得
+                // h3 > a[name="{n}"]   から
+                // h3 > a[name="{n+1}"] まで取得
                 var targetNodes = (IEnumerable<object>)doc.XPathEvaluate($@"{lyricsRoot}/x:h3[x:a[@name='{n}']]/following-sibling::node()[following::x:h3[x:a[@name='{n + 1}']]]", nsMgr);
                 if (targetNodes.Count() == 0)
                 {
                     // 上の条件で見つからなかった場合は
-                    // <h3><a name="{n}">n. [title]</a></h3>                             から
-                    // <div class="thanks"></div> or <div class="note"></div> or <a></a> まで取得
+                    // h3 > a[name="{n}"]      から
+                    // div.thanks, div.note, a まで取得
                     targetNodes = ((IEnumerable<object>)doc.XPathEvaluate($@"{lyricsRoot}/x:h3[x:a[@name='{n}']]/following-sibling::node()", nsMgr))
                         .TakeWhile(node =>
                         {
@@ -74,19 +74,25 @@ namespace MusicBeePlugin.Net
                 }
                 // それでも見つからなかったら知らん
 
-                var items = targetNodes.Select(node =>
+                var items = targetNodes.Select(obj =>
                 {
-                    if (((XNode)node).NodeType == XmlNodeType.Element)
+                    var node = (XNode)obj;
+                    switch (node.NodeType)
                     {
-                        // <br>なら改行にして、<i>ならその中のテキストを取り出す
-                        var elem = (XElement)node;
-                        if (elem.Name.LocalName == "br") return "\r\n";
-                        else if (elem.Name.LocalName == "i") return elem.Value.Trim();
-                        else return null;
+                        case XmlNodeType.Element:
+                            // br なら改行にして、i ならその中のテキストを取り出す
+                            var elem = (XElement)obj;
+                            switch (elem.Name.LocalName)
+                            {
+                                case "br": return "\r\n";
+                                case "i":  return elem.Value.Trim();
+                                default:   return null;
+                            }
+                        case XmlNodeType.Text:
+                            // TextNode ならテキストを取り出す
+                            return ((XText)node).Value.Trim();
                     }
-                    // TextNode ならテキストを取り出す
-                    else if (((XNode)node).NodeType == XmlNodeType.Text) return ((XText)node).Value.Trim();
-                    else return null;
+                    return null;
                 });
                 // シーケンスから空のテキストを除外
                 return items.Where(s => !string.IsNullOrEmpty(s)).ToArray();
