@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Net;
 using System.Threading.Tasks;
 
 namespace MusicBeePlugin.Net
 {
+    [DebuggerStepThrough]
     public class WebClientEx : WebClient
     {
         public string Referer = null;
