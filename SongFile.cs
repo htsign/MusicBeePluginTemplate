@@ -20,13 +20,13 @@ namespace MusicBeePlugin
         #endregion
 
         #region public properties
-		public bool AutoCommit { get; set; } = true;
+        public bool AutoCommit { get; set; } = true;
 
         public string FullPath { get; }
         
         private string fileName = null;
         public string FileName => fileName ?? (fileName = Path.GetFileName(FullPath));
-		
+        
         public string this[string name]
         {
             get
@@ -211,18 +211,18 @@ namespace MusicBeePlugin
         public bool Commit() => mbApiInterface.Library_CommitTagsToFile(FullPath);
         #endregion
 
-		#region disposable pattern
-		public void Dispose()
-		{
-			if (AutoCommit) Commit();
-			GC.SuppressFinalize(this);
-		}
+        #region disposable pattern
+        public void Dispose()
+        {
+            if (AutoCommit) Commit();
+            GC.SuppressFinalize(this);
+        }
 
-		~SongFile()
-		{
-			Dispose();
-		}
-		#endregion
+        ~SongFile()
+        {
+            Dispose();
+        }
+        #endregion
     }
 }
 
