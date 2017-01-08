@@ -123,7 +123,6 @@ namespace MusicBeePlugin
         // そしてそこで選択されたものが一つ一つRetrieveLyrics/RetrieveArtworkメソッドに渡されます。
         public string[] GetProviders()
         {
-            LyricsFetcher.RegisterProvider(new DarkLyricsLyricsFetcher());
             return LyricsFetcher.RegisteredProviders;
         }
 

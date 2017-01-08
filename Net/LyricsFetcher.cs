@@ -26,6 +26,11 @@ namespace MusicBeePlugin.Net
         public abstract string Provider { get; }
         #endregion
 
+        static LyricsFetcher()
+        {
+            RegisterProvider(new DarkLyricsLyricsFetcher());
+        }
+
         #region public methods
         public static bool RegisterProvider(LyricsFetcher fetcher) => registeredProviders.Add(fetcher);
 
