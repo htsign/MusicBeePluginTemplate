@@ -150,10 +150,9 @@ namespace MusicBeePlugin
         {
             if (mbApiInterface.Library_QueryFiles(query))
             {
-                while (true)
+                string file;
+                while ((file = mbApiInterface.Library_QueryGetNextFile()) != null)
                 {
-                    string file = mbApiInterface.Library_QueryGetNextFile();
-                    if (file == null) yield break;
                     yield return file;
                 }
             }
