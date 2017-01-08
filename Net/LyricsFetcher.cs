@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Xml;
 using System.Xml.Linq;
 using Sgml;
 
@@ -25,6 +24,11 @@ namespace MusicBeePlugin.Net
 
         public abstract string Provider { get; }
         #endregion
+
+        static LyricsFetcher()
+        {
+            // RegisterProvider(new InheritLyricsFetcher());
+        }
 
         #region public methods
         public static bool RegisterProvider(LyricsFetcher fetcher) => registeredProviders.Add(fetcher);
