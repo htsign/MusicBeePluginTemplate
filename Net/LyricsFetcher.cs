@@ -10,42 +10,29 @@ namespace MusicBeePlugin.Net
     public abstract class LyricsFetcher
     {
         #region private fields
-        private static HashSet<LyricsFetcher> registeredProviders = new HashSet<LyricsFetcher>();
+        private static Dictionary<string, LyricsFetcher> registeredProviders = new Dictionary<string, LyricsFetcher>();
         #endregion
 
         #region public properties
-        public static string[] RegisteredProviders
-        {
-            get
-            {
-                var providers = registeredProviders.Select(f => f.Provider);
-                return providers.Count() != 0 ? providers.ToArray() : null;
-            }
-        }
+        public static string[] RegisteredProviders => registeredProviders.Keys.ToArray();
 
         public abstract string Provider { get; }
         #endregion
 
         static LyricsFetcher()
         {
-            RegisterProvider(new DarkLyricsLyricsFetcher());
+            RegisterProvider("DarkLyrics.com", new DarkLyricsLyricsFetcher());
         }
 
         #region public methods
-        public static bool RegisterProvider(LyricsFetcher fetcher) => registeredProviders.Add(fetcher);
-
-        public static LyricsFetcher GetFetcher(string providerName)
+        public static bool RegisterProvider(string provider, LyricsFetcher fetcher)
         {
-            if (!RegisteredProviders.Contains(providerName)) return null;
-
-            switch (providerName)
-            {
-                case "DarkLyrics.com":
-                    return new DarkLyricsLyricsFetcher();
-                default:
-                    return null;
-            }
+            if (registeredProviders.ContainsKey(provider)) return false;
+            registeredProviders[provider] = fetcher;
+            return true;
         }
+
+        public static LyricsFetcher GetFetcher(string providerName) => registeredProviders[providerName];
 
         public abstract string Fetch(string title, string artist, string album = null);
         #endregion
