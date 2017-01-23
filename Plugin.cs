@@ -148,13 +148,12 @@ namespace MusicBeePlugin
 
         public IEnumerable<string> GetSongs(string query)
         {
-            if (mbApiInterface.Library_QueryFiles(query))
+            if (!mbApiInterface.Library_QueryFiles(query)) yield break;
+
+            string file;
+            while ((file = mbApiInterface.Library_QueryGetNextFile()) != null)
             {
-                string file;
-                while ((file = mbApiInterface.Library_QueryGetNextFile()) != null)
-                {
-                    yield return file;
-                }
+                yield return file;
             }
         }
     }
