@@ -28,7 +28,7 @@ namespace MusicBeePlugin.Net
 
         static LyricsFetcher()
         {
-            // RegisterProvider<JLyricLyricsFetcher>();
+            RegisterProvider<JLyricLyricsFetcher>();
         }
 
         #region public methods

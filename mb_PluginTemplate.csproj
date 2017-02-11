@@ -86,6 +86,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config.cs" />
+    <Compile Include="Net\JLyricLyricsFetcher.cs" />
     <Compile Include="Net\LyricsFetcher.cs" />
     <Compile Include="Net\WebClientEx.cs">
       <SubType>Component</SubType>
