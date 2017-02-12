@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using static MusicBeePlugin.Plugin;
 
 namespace MusicBeePlugin
 {
+	using static Plugin;
+
     public class SongFile : IDisposable
     {
         private MusicBeeApiInterface mbApiInterface;
