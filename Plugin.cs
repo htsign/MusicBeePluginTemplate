@@ -27,14 +27,14 @@ namespace MusicBeePlugin
             mbApiInterface = new MusicBeeApiInterface();
             mbApiInterface.Initialise(apiInterfacePtr);
             about.PluginInfoVersion = PluginInfoVersion;
-            about.Name        = attributes.OfType<AssemblyTitleAttribute>()      .SingleOrDefault()?.Title;
-            about.Description = attributes.OfType<AssemblyDescriptionAttribute>().SingleOrDefault()?.Description;
-            about.Author      = attributes.OfType<AssemblyCompanyAttribute>()    .SingleOrDefault()?.Company;
+            about.Name              = attributes.OfType<AssemblyTitleAttribute>()      .SingleOrDefault()?.Title;
+            about.Description       = attributes.OfType<AssemblyDescriptionAttribute>().SingleOrDefault()?.Description;
+            about.Author            = attributes.OfType<AssemblyCompanyAttribute>()    .SingleOrDefault()?.Company;
             about.TargetApplication = "";   // current only applies to artwork, lyrics or instant messenger name that appears in the provider drop down selector or target Instant Messenger
-            about.Type         = PluginType.General;
-            about.VersionMajor = (short)version.Major;
-            about.VersionMinor = (short)version.Minor;
-            about.Revision     = (short)version.Revision;
+            about.Type              = PluginType.General;
+            about.VersionMajor      = (short)version.Major;
+            about.VersionMinor      = (short)version.Minor;
+            about.Revision          = (short)version.Revision;
             about.MinInterfaceVersion  = MinInterfaceVersion;
             about.MinApiRevision       = MinApiRevision;
             about.ReceiveNotifications = (ReceiveNotificationFlags.PlayerEvents | ReceiveNotificationFlags.TagEvents);
