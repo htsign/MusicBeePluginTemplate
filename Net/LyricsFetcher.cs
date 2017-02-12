@@ -15,6 +15,9 @@ namespace MusicBeePlugin.Net
         #endregion
 
         #region public properties
+        /// <summary>
+        /// <see cref="LyricsFetcher"/> に登録済の歌詞提供事業者名リスト
+        /// </summary>
         public static string[] RegisteredProviders => registeredProviders.Keys.ToArray();
 
         public abstract string Provider { get; }
