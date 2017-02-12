@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Windows.Forms;
 
 namespace MusicBeePlugin
 {
-    using System.Reflection;
+    using Net;
     using Windows.Forms;
 
     public partial class Plugin
@@ -26,14 +27,14 @@ namespace MusicBeePlugin
             mbApiInterface = new MusicBeeApiInterface();
             mbApiInterface.Initialise(apiInterfacePtr);
             about.PluginInfoVersion = PluginInfoVersion;
-            about.Name        = attributes.OfType<AssemblyTitleAttribute>()      .SingleOrDefault()?.Title;
-            about.Description = attributes.OfType<AssemblyDescriptionAttribute>().SingleOrDefault()?.Description;
-            about.Author      = attributes.OfType<AssemblyCompanyAttribute>()    .SingleOrDefault()?.Company;
+            about.Name              = attributes.OfType<AssemblyTitleAttribute>()      .SingleOrDefault()?.Title;
+            about.Description       = attributes.OfType<AssemblyDescriptionAttribute>().SingleOrDefault()?.Description;
+            about.Author            = attributes.OfType<AssemblyCompanyAttribute>()    .SingleOrDefault()?.Company;
             about.TargetApplication = "";   // current only applies to artwork, lyrics or instant messenger name that appears in the provider drop down selector or target Instant Messenger
-            about.Type         = PluginType.General;
-            about.VersionMajor = (short)version.Major;
-            about.VersionMinor = (short)version.Minor;
-            about.Revision     = (short)version.Revision;
+            about.Type              = PluginType.General;
+            about.VersionMajor      = (short)version.Major;
+            about.VersionMinor      = (short)version.Minor;
+            about.Revision          = (short)version.Revision;
             about.MinInterfaceVersion  = MinInterfaceVersion;
             about.MinApiRevision       = MinApiRevision;
             about.ReceiveNotifications = (ReceiveNotificationFlags.PlayerEvents | ReceiveNotificationFlags.TagEvents);
@@ -122,7 +123,7 @@ namespace MusicBeePlugin
         // そしてそこで選択されたものが一つ一つRetrieveLyrics/RetrieveArtworkメソッドに渡されます。
         public string[] GetProviders()
         {
-            return null;
+            return LyricsFetcher.RegisteredProviders;
         }
 
         // provider に対して artist や title を元にリクエストして得られた歌詞を返してください。
@@ -130,7 +131,10 @@ namespace MusicBeePlugin
         // 歌詞が見つからなかった場合は null を返してください。
         public string RetrieveLyrics(string sourceFileUrl, string artist, string trackTitle, string album, bool synchronisedPreferred, string provider)
         {
-            return null;
+            if (about.Type != PluginType.LyricsRetrieval) return null;
+
+            var fetcher = LyricsFetcher.GetFetcher(provider);
+            return fetcher?.Fetch(trackTitle, artist);
         }
 
         // provider に対してリクエストして得られたアートワークのバイナリデータをBASE64エンコードして返してください。
@@ -144,14 +148,12 @@ namespace MusicBeePlugin
 
         public IEnumerable<string> GetSongs(string query)
         {
-            if (mbApiInterface.Library_QueryFiles(query))
+            if (!mbApiInterface.Library_QueryFiles(query)) yield break;
+
+            string file;
+            while ((file = mbApiInterface.Library_QueryGetNextFile()) != null)
             {
-                while (true)
-                {
-                    string file = mbApiInterface.Library_QueryGetNextFile();
-                    if (file == null) yield break;
-                    yield return file;
-                }
+                yield return file;
             }
         }
     }
