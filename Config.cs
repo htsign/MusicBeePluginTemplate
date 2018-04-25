@@ -78,10 +78,7 @@ namespace MusicBeePlugin
         #endregion
 
         #region public methods
-        public override void LoadDefault()
-        {
-            instance = new Config();
-        }
+        public override void LoadDefault() => instance = new Config();
         #endregion
     }
 }

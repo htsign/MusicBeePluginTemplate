@@ -32,9 +32,9 @@ namespace MusicBeePlugin.Extensions.Windows.Forms
                         yield return child;
                     }
                 }
-                else if (ctrl.GetType() == typeof(TResult))
+                else if (ctrl is TResult tctrl)
                 {
-                    yield return (TResult)ctrl;
+                    yield return tctrl;
                 }
             }
         }
@@ -50,8 +50,7 @@ namespace MusicBeePlugin.Extensions.Windows.Forms
 
             if (control.Parent != null)
             {
-                depth += control.Parent.GetDepth();
-                depth++;
+                depth += control.Parent.GetDepth() + 1;
             }
 
             return depth;

@@ -7,16 +7,16 @@ namespace MusicBeePlugin.Net
     [DebuggerStepThrough]
     public class WebClientEx : WebClient
     {
-        public string Referer = null;
+        public string Referer { get; set; } = null;
         public CookieContainer CookieContainer { get; set; } = new CookieContainer();
 
         protected override WebRequest GetWebRequest(Uri address)
         {
             var req = base.GetWebRequest(address);
 
-            if (req is HttpWebRequest)
+            if (req is HttpWebRequest hreq)
             {
-                ((HttpWebRequest)req).CookieContainer = CookieContainer;
+                hreq.CookieContainer = CookieContainer;
             }
             return req;
         }
@@ -25,9 +25,9 @@ namespace MusicBeePlugin.Net
         {
             var res = base.GetWebResponse(request);
 
-            if (res is HttpWebResponse)
+            if (res is HttpWebResponse hres)
             {
-                Referer = ((HttpWebResponse)res).ResponseUri.AbsoluteUri;
+                Referer = hres.ResponseUri.AbsoluteUri;
             }
             return res;
         }
