@@ -6,32 +6,35 @@ namespace MusicBeePlugin
     public partial class Plugin
     {
         public const short PluginInfoVersion = 1;
-        public const short MinInterfaceVersion = 35;
-        public const short MinApiRevision = 47;
+        public const short MinInterfaceVersion = 36;
+        public const short MinApiRevision = 48;
 
         [StructLayout(LayoutKind.Sequential)]
         public struct MusicBeeApiInterface
         {
             public void Initialise(IntPtr apiInterfacePtr)
             {
-                NativeMethods.CopyMemory(ref this, apiInterfacePtr, 4);
+                CopyMemory(ref this, apiInterfacePtr, 4);
                 if (MusicBeeVersion == MusicBeeVersion.v2_0)
                     // MusicBee version 2.0 - Api methods > revision 25 are not available
-                    NativeMethods.CopyMemory(ref this, apiInterfacePtr, 456);
+                    CopyMemory(ref this, apiInterfacePtr, 456);
                 else if (MusicBeeVersion == MusicBeeVersion.v2_1)
-                    NativeMethods.CopyMemory(ref this, apiInterfacePtr, 516);
+                    CopyMemory(ref this, apiInterfacePtr, 516);
                 else if (MusicBeeVersion == MusicBeeVersion.v2_2)
-                    NativeMethods.CopyMemory(ref this, apiInterfacePtr, 584);
+                    CopyMemory(ref this, apiInterfacePtr, 584);
                 else if (MusicBeeVersion == MusicBeeVersion.v2_3)
-                    NativeMethods.CopyMemory(ref this, apiInterfacePtr, 596);
+                    CopyMemory(ref this, apiInterfacePtr, 596);
                 else if (MusicBeeVersion == MusicBeeVersion.v2_4)
-                    NativeMethods.CopyMemory(ref this, apiInterfacePtr, 604);
+                    CopyMemory(ref this, apiInterfacePtr, 604);
+                else if (MusicBeeVersion == MusicBeeVersion.v2_5)
+                    CopyMemory(ref this, apiInterfacePtr, 648);
                 else
-                    NativeMethods.CopyMemory(ref this, apiInterfacePtr, Marshal.SizeOf(this));
+                    CopyMemory(ref this, apiInterfacePtr, Marshal.SizeOf(this));
             }
             public MusicBeeVersion MusicBeeVersion
             {
-                get {
+                get
+                {
                     if (ApiRevision <= 25)
                         return MusicBeeVersion.v2_0;
                     else if (ApiRevision <= 31)
@@ -42,8 +45,10 @@ namespace MusicBeePlugin
                         return MusicBeeVersion.v2_3;
                     else if (ApiRevision <= 43)
                         return MusicBeeVersion.v2_4;
-                    else
+                    else if (ApiRevision <= 47)
                         return MusicBeeVersion.v2_5;
+                    else
+                        return MusicBeeVersion.v3_0;
                 }
             }
             public short InterfaceVersion;
@@ -234,6 +239,8 @@ namespace MusicBeePlugin
             public MB_ShowPluginViewDelegate MB_ShowPluginView;
             public Player_GetOutputDevicesDelegate Player_GetOutputDevices;
             public Player_SetOutputDeviceDelegate Player_SetOutputDevice;
+            // api version 48
+            public MB_UninistallPluginDelegate MB_UninstallPlugin;
         }
 
         public enum MusicBeeVersion
@@ -243,7 +250,8 @@ namespace MusicBeePlugin
             v2_2 = 2,
             v2_3 = 3,
             v2_4 = 4,
-            v2_5 = 5
+            v2_5 = 5,
+            v3_0 = 6
         }
 
         public enum PluginType
@@ -385,7 +393,7 @@ namespace MusicBeePlugin
             AlbumArtistRaw = 34,     // stored album artist
             Artist = 32,             // displayed artist
             MultiArtist = 33,        // individual artists, separated by a null char
-			PrimaryArtist = 19,      // first artist from multi-artist tagged file, otherwise displayed artist
+            PrimaryArtist = 19,      // first artist from multi-artist tagged file, otherwise displayed artist
             Artists = 144,
             ArtistsWithArtistRole = 145,
             ArtistsWithPerformerRole = 146,
@@ -453,7 +461,7 @@ namespace MusicBeePlugin
             Virtual16 = 141,
             Year = 88
         }
-        
+
         public enum FileCodec
         {
             Unknown = -1,
@@ -520,7 +528,25 @@ namespace MusicBeePlugin
             PlayCountTriggerPercent = 7,
             PlayCountTriggerSeconds = 8,
             SkipCountTriggerPercent = 9,
-            SkipCountTriggerSeconds = 10
+            SkipCountTriggerSeconds = 10,
+            CustomWebLinkName1 = 11,
+            CustomWebLinkName2 = 12,
+            CustomWebLinkName3 = 13,
+            CustomWebLinkName4 = 14,
+            CustomWebLinkName5 = 15,
+            CustomWebLinkName6 = 16,
+            CustomWebLink1 = 17,
+            CustomWebLink2 = 18,
+            CustomWebLink3 = 19,
+            CustomWebLink4 = 20,
+            CustomWebLink5 = 21,
+            CustomWebLink6 = 22,
+            CustomWebLinkNowPlaying1 = 23,
+            CustomWebLinkNowPlaying2 = 24,
+            CustomWebLinkNowPlaying3 = 25,
+            CustomWebLinkNowPlaying4 = 26,
+            CustomWebLinkNowPlaying5 = 27,
+            CustomWebLinkNowPlaying6 = 28
         }
 
         public enum ComparisonType
@@ -606,7 +632,7 @@ namespace MusicBeePlugin
             MainPanel = 5
         }
 
-        
+
         public enum ReplayGainMode
         {
             Off = 0,
@@ -614,7 +640,7 @@ namespace MusicBeePlugin
             Album = 2,
             Smart = 3
         }
-        
+
         public enum PlayStatisticType
         {
             NoChange = 0,
@@ -626,7 +652,7 @@ namespace MusicBeePlugin
         {
             NavigateTo = 1
         }
-        
+
         public enum DownloadTarget
         {
             Inbox = 0,
@@ -635,7 +661,7 @@ namespace MusicBeePlugin
         }
 
         [Flags()]
-        public enum PictureLocations: byte
+        public enum PictureLocations : byte
         {
             None = 0,
             EmbedInFile = 1,
@@ -677,6 +703,7 @@ namespace MusicBeePlugin
         public delegate bool MB_ShowVisualiserDelegate(string visualiserName, WindowState state);
         public delegate bool MB_GetPluginViewInformationDelegate(string pluginFilename, out string[] viewNames, out string defaultViewName, out WindowState defaultState, out WindowState currentState);
         public delegate bool MB_ShowPluginViewDelegate(string pluginFilename, string viewName, WindowState state);
+        public delegate bool MB_UninistallPluginDelegate(string pluginFilename, string password);
         public delegate string Setting_GetFieldNameDelegate(MetaDataType field);
         public delegate string Setting_GetPersistentStoragePathDelegate();
         public delegate string Setting_GetSkinDelegate();
@@ -792,11 +819,8 @@ namespace MusicBeePlugin
         public delegate string Sync_FileStartDelegate(string filename);
         public delegate void Sync_FileEndDelegate(string filename, bool success, string errorMessage);
 
-        private static class NativeMethods
-        {
-            [System.Security.SuppressUnmanagedCodeSecurity()]
-            [DllImport("kernel32.dll")]
-            public static extern void CopyMemory(ref MusicBeeApiInterface mbApiInterface, IntPtr src, int length);
-        }
+        [System.Security.SuppressUnmanagedCodeSecurity()]
+        [DllImport("kernel32.dll")]
+        private static extern void CopyMemory(ref MusicBeeApiInterface mbApiInterface, IntPtr src, int length);
     }
 }
